@@ -1,0 +1,19 @@
+[Unit]
+Description=My Script Service
+After=network.target
+
+[Service]
+ExecStart=/teljes/útvonal/a/my_script.py
+WorkingDirectory=/teljes/útvonal/a/
+Restart=always
+User=nobody
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+RestartSec=3
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=my_script
+
+[Install]
+WantedBy=multi-user.target
