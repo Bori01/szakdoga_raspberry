@@ -51,7 +51,7 @@ subscriber.run(client)
 
 while True:
     lux = lightsensor.lux
-    temperature = ("%0.1f C" % thsensor.temperature)
+    temperature = ("%0.1f C°" % thsensor.temperature)
     humidity = ("%0.1f %%" % thsensor.relative_humidity)
     soilmoisture = adc.read_adc(0, gain=GAIN)
     
