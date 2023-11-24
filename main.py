@@ -22,37 +22,41 @@ GPIO.setup(relay, GPIO.OUT)
 GPIO.output(relay, False)
 
 client = mqtt_connect.connect_mqtt()
-lightness_topic = "sector2/lightness"
-temperature_topic = "sector2/temperature"
-humidity_topic = "sector2/humidity"
-soilmoisture_topic = "sector2/soilmoisture"
+lightness_topic = "FIM3VE/sector2/lightness"
+temperature_topic = "FIM3VE/sector2/temperature"
+humidity_topic = "FIM3VE/sector2/humidity"
+soilmoisture_topic = "FIM3VE/sector2/soilmoisture"
 
+global KEVES_VIZ
 KEVES_VIZ = True
 
-def on_message(client, userdata, msg):
+def on_watering(client, userdata, msg):
     print(f"Recieved `{msg.payload.decode()}` from `{msg.topic}` topic")
     if (msg.topic).find("sector2/water") != -1:
+        global KEVES_VIZ
         if not KEVES_VIZ:
             print("locsol")
             GPIO.output(relay, True)
             time.sleep(5.0)
             GPIO.output(relay, False)
 
+def on_waterlevel_change(client, userdata, msg):
+    print(f"Recieved `{msg.payload.decode()}` from `{msg.topic}` topic")
     if (msg.topic).find("general/waterlevel") != -1:
+        global KEVES_VIZ
         if (msg.payload.decode()).find("danger") != -1:
             KEVES_VIZ = True
         elif (msg.payload.decode()).find("enough") != -1:
             KEVES_VIZ = False
-    
-            
-subscriber.subscribe(client, "general/waterlevel", on_message)
-subscriber.subscribe(client, "sector2/water", on_message)
+              
+subscriber.subscribe(client, "FIM3VE/general/waterlevel", on_watering)
+subscriber.subscribe(client, "FIM3VE/sector2/water", on_waterlevel_change)
 subscriber.run(client)
 
 while True:
     lux = lightsensor.lux
-    temperature = ("%0.1f C°" % thsensor.temperature)
-    humidity = ("%0.1f %%" % thsensor.relative_humidity)
+    temperature = ("%0.1f °C" % thsensor.temperature)
+    humidity = ("%0.1f%%" % thsensor.relative_humidity)
     soilmoisture = adc.read_adc(0, gain=GAIN)
     
     publisher.publish(client, lightness_topic, round(lux, 2))
