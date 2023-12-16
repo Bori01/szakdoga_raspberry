@@ -2,7 +2,6 @@ import time
 import board
 import busio
 import Adafruit_ADS1x15
-from gpiozero import LED
 import RPi.GPIO as GPIO
 import mqtt_connect
 import publisher
@@ -29,10 +28,11 @@ GPIO.setup(blue, GPIO.OUT)
 b = GPIO.PWM(blue, 100)
 
 client = mqtt_connect.connect_mqtt()
-water_topic = "general/waterlevel"
+water_topic = "FIM3VE/general/waterlevel"
+wind_topic = "FIM3VE/general/windlevel"
 
 KEVES_VIZ = False
-danger_zone = 500
+danger_zone = 8000
 
 
 def on_message(client, userdata, msg):
@@ -64,15 +64,17 @@ def on_message(client, userdata, msg):
             b.stop()
 
 subscriber.run(client)
-subscriber.subscribe(client, "general/window", on_message)
-subscriber.subscribe(client, "general/ventillator", on_message)
-subscriber.subscribe(client, "general/light", on_message)
+subscriber.subscribe(client, "FIM3VE/general/window", on_message)
+subscriber.subscribe(client, "FIM3VE/general/ventillator", on_message)
+subscriber.subscribe(client, "FIM3VE/general/light", on_message)
 
 
 while True:
     waterlevel = adc.read_adc(1, gain=GAIN)
+    windlevel = ("%0.0f m/s" % (adc.read_adc(0, gain=GAIN) / 65535 * 70))
 
     publisher.publish(client, water_topic, waterlevel)
+    publisher.publish(client, wind_topic, windlevel)
 
     if waterlevel < danger_zone and not KEVES_VIZ:
         publisher.publish(client, water_topic, "danger")
